@@ -9,7 +9,6 @@ License: CC BY-SA 4.0
 """
 
 import csv
-import json
 import logging
 import os
 from pathlib import Path
@@ -139,12 +138,14 @@ def _normalize_downloaded_csv(raw_file: str, output_file: str) -> str:
                 biome = row.get("biome") or row.get("bioma") or "Amazon"
 
                 if year and area:
-                    rows.append({
-                        "year": int(float(year)),
-                        "biome": biome,
-                        "state": state,
-                        "area_km2": float(str(area).replace(",", ".")),
-                    })
+                    rows.append(
+                        {
+                            "year": int(float(year)),
+                            "biome": biome,
+                            "state": state,
+                            "area_km2": float(str(area).replace(",", ".")),
+                        }
+                    )
     except Exception as exc:
         logger.warning("Failed to parse downloaded CSV: %s. Using fallback.", exc)
         return _write_fallback_csv(output_file)

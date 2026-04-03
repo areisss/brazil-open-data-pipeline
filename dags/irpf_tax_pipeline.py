@@ -46,7 +46,11 @@ def irpf_tax_pipeline():
 
     @task(task_id="download_irpf", pool=GOV_API_POOL)
     def download(**context):
-        import sys; sys.path.insert(0, "/opt/airflow"); from include.extractors.irpf import download_irpf
+        import sys
+
+        sys.path.insert(0, "/opt/airflow")
+        from include.extractors.irpf import download_irpf
+
         return download_irpf(f"{RAW_PATH}/irpf")
 
     bronze = DuckDBOperator(
@@ -72,12 +76,34 @@ def irpf_tax_pipeline():
 
     @task(task_id="quality_checks")
     def quality_checks(**context):
-        return run_quality_checks([
-            {"name": "bronze_rows", "sql": f"SELECT count(*) FROM read_parquet('{BRONZE_PATH}/irpf/**/*.parquet')", "op": "gt", "threshold": 0},
-            {"name": "silver_rows", "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/irpf/**/*.parquet')", "op": "gt", "threshold": 0},
-            {"name": "gold_rows", "sql": f"SELECT count(*) FROM read_parquet('{GOLD_PATH}/tax_by_bracket/**/*.parquet')", "op": "gt", "threshold": 0},
-            {"name": "no_negative_tax", "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/irpf/**/*.parquet') WHERE tax_due_brl < 0", "op": "eq", "threshold": 0},
-        ])
+        return run_quality_checks(
+            [
+                {
+                    "name": "bronze_rows",
+                    "sql": f"SELECT count(*) FROM read_parquet('{BRONZE_PATH}/irpf/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "silver_rows",
+                    "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/irpf/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "gold_rows",
+                    "sql": f"SELECT count(*) FROM read_parquet('{GOLD_PATH}/tax_by_bracket/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "no_negative_tax",
+                    "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/irpf/**/*.parquet') WHERE tax_due_brl < 0",
+                    "op": "eq",
+                    "threshold": 0,
+                },
+            ]
+        )
 
     @task(task_id="publish_dataset", outlets=[DS_IRPF])
     def publish(**context):
@@ -89,6 +115,7 @@ def irpf_tax_pipeline():
 
 def _check_source_changed(**context):
     from common.etag_checker import check_source_changed
+
     return check_source_changed(
         source_key="irpf_data",
         url="https://www.gov.br/receitafederal/dados/grandes-numeros-irpf.csv",

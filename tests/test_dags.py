@@ -12,9 +12,12 @@ from pathlib import Path
 
 import pytest
 
-# Add project root to path so dags/ and include/ are importable
+# Add project root and dags/ to path so modules are importable
+# (Airflow adds dags/ to sys.path at runtime; we replicate that here)
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT / "dags"))
+sys.path.insert(0, str(PROJECT_ROOT / "include"))
 
 # Set environment variables that DAGs expect
 os.environ.setdefault("DATA_LAKE_PATH", "/tmp/test_data")

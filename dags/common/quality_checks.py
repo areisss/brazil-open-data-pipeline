@@ -43,13 +43,15 @@ def run_quality_checks(checks: list[dict], **kwargs) -> dict:
             value = con.execute(sql).fetchone()[0]
             passed = _evaluate(value, op, threshold)
 
-            results["details"].append({
-                "name": name,
-                "value": value,
-                "threshold": threshold,
-                "op": op,
-                "passed": passed,
-            })
+            results["details"].append(
+                {
+                    "name": name,
+                    "value": value,
+                    "threshold": threshold,
+                    "op": op,
+                    "passed": passed,
+                }
+            )
 
             if passed:
                 results["passed"] += 1
@@ -58,11 +60,13 @@ def run_quality_checks(checks: list[dict], **kwargs) -> dict:
 
         except Exception as exc:
             results["failed"] += 1
-            results["details"].append({
-                "name": name,
-                "error": str(exc),
-                "passed": False,
-            })
+            results["details"].append(
+                {
+                    "name": name,
+                    "error": str(exc),
+                    "passed": False,
+                }
+            )
 
     con.close()
 

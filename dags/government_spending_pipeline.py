@@ -46,8 +46,14 @@ def government_spending_pipeline():
 
     @task(task_id="fetch_siconfi_data", pool=GOV_API_POOL)
     def fetch_data(**context):
-        import sys; sys.path.insert(0, "/opt/airflow"); from include.extractors.siconfi import fetch_spending_data
-        return fetch_spending_data(f"{RAW_PATH}/spending", start_year=2000, end_year=2024)
+        import sys
+
+        sys.path.insert(0, "/opt/airflow")
+        from include.extractors.siconfi import fetch_spending_data
+
+        return fetch_spending_data(
+            f"{RAW_PATH}/spending", start_year=2000, end_year=2024
+        )
 
     bronze = DuckDBOperator(
         task_id="bronze_ingest",
@@ -72,23 +78,54 @@ def government_spending_pipeline():
 
     @task(task_id="quality_checks")
     def quality_checks(**context):
-        return run_quality_checks([
-            {"name": "bronze_rows", "sql": f"SELECT count(*) FROM read_parquet('{BRONZE_PATH}/spending/**/*.parquet')", "op": "gt", "threshold": 0},
-            {"name": "silver_rows", "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/spending/**/*.parquet')", "op": "gt", "threshold": 0},
-            {"name": "gold_rows", "sql": f"SELECT count(*) FROM read_parquet('{GOLD_PATH}/spending_by_function/**/*.parquet')", "op": "gt", "threshold": 0},
-            {"name": "no_negative_spending", "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/spending/**/*.parquet') WHERE executed_brl < 0", "op": "eq", "threshold": 0},
-        ])
+        return run_quality_checks(
+            [
+                {
+                    "name": "bronze_rows",
+                    "sql": f"SELECT count(*) FROM read_parquet('{BRONZE_PATH}/spending/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "silver_rows",
+                    "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/spending/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "gold_rows",
+                    "sql": f"SELECT count(*) FROM read_parquet('{GOLD_PATH}/spending_by_function/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "no_negative_spending",
+                    "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/spending/**/*.parquet') WHERE executed_brl < 0",
+                    "op": "eq",
+                    "threshold": 0,
+                },
+            ]
+        )
 
     @task(task_id="publish_dataset", outlets=[DS_SPENDING])
     def publish(**context):
         return {"status": "published", "dataset": "spending"}
 
     dl = fetch_data()
-    check_source >> dl >> bronze >> silver >> gold_function >> quality_checks() >> publish()
+    (
+        check_source
+        >> dl
+        >> bronze
+        >> silver
+        >> gold_function
+        >> quality_checks()
+        >> publish()
+    )
 
 
 def _check_source_changed(**context):
     from common.etag_checker import check_source_changed
+
     return check_source_changed(
         source_key="siconfi_spending",
         url="https://apidatalake.tesouro.gov.br/ords/siconfi/tt/rreo",

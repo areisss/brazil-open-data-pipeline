@@ -60,21 +60,39 @@ def _try_normalize(raw_file: str, output_file: str) -> str:
             reader = csv.DictReader(f, delimiter=delimiter)
             for row in reader:
                 year = row.get("ano") or row.get("Ano") or row.get("year")
-                bracket = row.get("faixa") or row.get("Faixa de Renda") or row.get("bracket")
-                declarations = row.get("quantidade") or row.get("Quantidade de Declarações") or row.get("count")
-                taxable_income = row.get("rendimento_tributavel") or row.get("Rendimento Tributável") or "0"
+                bracket = (
+                    row.get("faixa") or row.get("Faixa de Renda") or row.get("bracket")
+                )
+                declarations = (
+                    row.get("quantidade")
+                    or row.get("Quantidade de Declarações")
+                    or row.get("count")
+                )
+                taxable_income = (
+                    row.get("rendimento_tributavel")
+                    or row.get("Rendimento Tributável")
+                    or "0"
+                )
                 tax_due = row.get("imposto_devido") or row.get("Imposto Devido") or "0"
                 state = row.get("uf") or row.get("UF") or "ALL"
 
                 if year and bracket:
-                    rows.append({
-                        "year": int(float(str(year).replace(",", ""))),
-                        "income_bracket": bracket.strip(),
-                        "state": state.strip(),
-                        "num_declarations": int(float(str(declarations or "0").replace(",", "").replace(".", ""))),
-                        "taxable_income_brl": _parse_brl(taxable_income),
-                        "tax_due_brl": _parse_brl(tax_due),
-                    })
+                    rows.append(
+                        {
+                            "year": int(float(str(year).replace(",", ""))),
+                            "income_bracket": bracket.strip(),
+                            "state": state.strip(),
+                            "num_declarations": int(
+                                float(
+                                    str(declarations or "0")
+                                    .replace(",", "")
+                                    .replace(".", "")
+                                )
+                            ),
+                            "taxable_income_brl": _parse_brl(taxable_income),
+                            "tax_due_brl": _parse_brl(tax_due),
+                        }
+                    )
 
         if rows:
             _write_csv(rows, output_file)
@@ -106,21 +124,33 @@ def _write_fallback(output_file: str) -> str:
     rows = []
     # Income brackets and approximate data from Receita Federal annual reports
     brackets = [
-        ("Ate 2 SM", 0.02),        # Up to 2 minimum wages — ~2% effective rate
-        ("2 a 5 SM", 0.05),        # 2-5 MW
-        ("5 a 10 SM", 0.08),       # 5-10 MW
-        ("10 a 20 SM", 0.12),      # 10-20 MW
-        ("20 a 40 SM", 0.18),      # 20-40 MW
-        ("40 a 80 SM", 0.22),      # 40-80 MW
+        ("Ate 2 SM", 0.02),  # Up to 2 minimum wages — ~2% effective rate
+        ("2 a 5 SM", 0.05),  # 2-5 MW
+        ("5 a 10 SM", 0.08),  # 5-10 MW
+        ("10 a 20 SM", 0.12),  # 10-20 MW
+        ("20 a 40 SM", 0.18),  # 20-40 MW
+        ("40 a 80 SM", 0.22),  # 40-80 MW
         ("Acima de 80 SM", 0.15),  # Above 80 MW — lower due to dividends/capital gains
     ]
 
     # Approximate total declarations and tax revenue by year (millions of declarations, billions BRL)
     yearly = [
-        (2008, 25.2, 130), (2009, 24.4, 125), (2010, 24.0, 140), (2011, 25.2, 155),
-        (2012, 26.0, 165), (2013, 26.5, 175), (2014, 27.0, 185), (2015, 27.5, 190),
-        (2016, 28.3, 195), (2017, 28.8, 210), (2018, 30.5, 225), (2019, 31.1, 240),
-        (2020, 32.0, 220), (2021, 34.0, 260), (2022, 36.3, 290), (2023, 38.0, 310),
+        (2008, 25.2, 130),
+        (2009, 24.4, 125),
+        (2010, 24.0, 140),
+        (2011, 25.2, 155),
+        (2012, 26.0, 165),
+        (2013, 26.5, 175),
+        (2014, 27.0, 185),
+        (2015, 27.5, 190),
+        (2016, 28.3, 195),
+        (2017, 28.8, 210),
+        (2018, 30.5, 225),
+        (2019, 31.1, 240),
+        (2020, 32.0, 220),
+        (2021, 34.0, 260),
+        (2022, 36.3, 290),
+        (2023, 38.0, 310),
         (2024, 40.0, 330),
     ]
 
@@ -132,20 +162,25 @@ def _write_fallback(output_file: str) -> str:
             decl_share = bracket_dist[i]
             # Higher brackets contribute disproportionately more tax
             tax_share = decl_share * (eff_rate / sum(r for _, r in brackets))
-            tax_share_normalized = tax_share / sum(d * (r / sum(rr for _, rr in brackets)) for d, (_, r) in zip(bracket_dist, brackets))
+            tax_share_normalized = tax_share / sum(
+                d * (r / sum(rr for _, rr in brackets))
+                for d, (_, r) in zip(bracket_dist, brackets)
+            )
 
             num_decl = int(total_decl_m * 1e6 * decl_share)
             tax_due = total_tax_b * 1e9 * tax_share_normalized
             taxable_income = tax_due / eff_rate if eff_rate > 0 else 0
 
-            rows.append({
-                "year": year,
-                "income_bracket": bracket_name,
-                "state": "ALL",
-                "num_declarations": num_decl,
-                "taxable_income_brl": round(taxable_income, 2),
-                "tax_due_brl": round(tax_due, 2),
-            })
+            rows.append(
+                {
+                    "year": year,
+                    "income_bracket": bracket_name,
+                    "state": "ALL",
+                    "num_declarations": num_decl,
+                    "taxable_income_brl": round(taxable_income, 2),
+                    "tax_due_brl": round(tax_due, 2),
+                }
+            )
 
     _write_csv(rows, output_file)
     logger.info("Wrote fallback IRPF CSV with %d rows", len(rows))
@@ -153,7 +188,14 @@ def _write_fallback(output_file: str) -> str:
 
 
 def _write_csv(rows: list[dict], output_file: str) -> None:
-    fieldnames = ["year", "income_bracket", "state", "num_declarations", "taxable_income_brl", "tax_due_brl"]
+    fieldnames = [
+        "year",
+        "income_bracket",
+        "state",
+        "num_declarations",
+        "taxable_income_brl",
+        "tax_due_brl",
+    ]
     with open(output_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()

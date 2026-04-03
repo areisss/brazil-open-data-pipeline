@@ -9,7 +9,7 @@ Short-circuits if the source hasn't changed since the last run.
 Data source: INPE PRODES — http://terrabrasilis.dpi.inpe.br/
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from airflow.decorators import dag, task
 from airflow.operators.python import ShortCircuitOperator
@@ -47,7 +47,10 @@ def deforestation_pipeline():
     @task(task_id="download_prodes", pool=GOV_API_POOL)
     def download_prodes(**context):
         """Download PRODES data from TerraBrasilis or fallback."""
-        import sys; sys.path.insert(0, "/opt/airflow"); from include.extractors.prodes import download_prodes
+        import sys
+
+        sys.path.insert(0, "/opt/airflow")
+        from include.extractors.prodes import download_prodes
 
         output_dir = f"{RAW_PATH}/prodes"
         filepath = download_prodes(output_dir)
@@ -92,38 +95,40 @@ def deforestation_pipeline():
     @task(task_id="quality_checks")
     def quality_checks(**context):
         """Run data quality assertions against all layers."""
-        return run_quality_checks([
-            {
-                "name": "bronze_row_count",
-                "sql": f"SELECT count(*) FROM read_parquet('{BRONZE_PATH}/prodes/**/*.parquet')",
-                "op": "gt",
-                "threshold": 0,
-            },
-            {
-                "name": "silver_row_count",
-                "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/prodes/**/*.parquet')",
-                "op": "gt",
-                "threshold": 0,
-            },
-            {
-                "name": "silver_no_null_years",
-                "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/prodes/**/*.parquet') WHERE year IS NULL",
-                "op": "eq",
-                "threshold": 0,
-            },
-            {
-                "name": "silver_no_negative_areas",
-                "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/prodes/**/*.parquet') WHERE area_km2 < 0",
-                "op": "eq",
-                "threshold": 0,
-            },
-            {
-                "name": "gold_biome_has_data",
-                "sql": f"SELECT count(*) FROM read_parquet('{GOLD_PATH}/deforestation_by_biome/**/*.parquet')",
-                "op": "gt",
-                "threshold": 0,
-            },
-        ])
+        return run_quality_checks(
+            [
+                {
+                    "name": "bronze_row_count",
+                    "sql": f"SELECT count(*) FROM read_parquet('{BRONZE_PATH}/prodes/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "silver_row_count",
+                    "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/prodes/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+                {
+                    "name": "silver_no_null_years",
+                    "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/prodes/**/*.parquet') WHERE year IS NULL",
+                    "op": "eq",
+                    "threshold": 0,
+                },
+                {
+                    "name": "silver_no_negative_areas",
+                    "sql": f"SELECT count(*) FROM read_parquet('{SILVER_PATH}/prodes/**/*.parquet') WHERE area_km2 < 0",
+                    "op": "eq",
+                    "threshold": 0,
+                },
+                {
+                    "name": "gold_biome_has_data",
+                    "sql": f"SELECT count(*) FROM read_parquet('{GOLD_PATH}/deforestation_by_biome/**/*.parquet')",
+                    "op": "gt",
+                    "threshold": 0,
+                },
+            ]
+        )
 
     @task(task_id="publish_dataset", outlets=[DS_DEFORESTATION])
     def publish(**context):
@@ -132,7 +137,15 @@ def deforestation_pipeline():
 
     # DAG flow
     dl = download_prodes()
-    check_source >> dl >> bronze >> silver >> [gold_biome, gold_state] >> quality_checks() >> publish()
+    (
+        check_source
+        >> dl
+        >> bronze
+        >> silver
+        >> [gold_biome, gold_state]
+        >> quality_checks()
+        >> publish()
+    )
 
 
 def _check_source_changed(**context):
