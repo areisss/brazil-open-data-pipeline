@@ -54,4 +54,4 @@ COPY (
     FROM enriched
     ORDER BY year, income_bracket
 )
-TO '{{ params.gold_path }}/tax_by_bracket/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE_OR_CREATE);
+TO '{{ params.gold_path }}/tax_by_bracket/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE);

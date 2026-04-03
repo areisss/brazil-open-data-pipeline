@@ -13,7 +13,7 @@ import duckdb
 from airflow.models import BaseOperator
 from airflow.utils.context import Context
 
-from dags.common.constants import DUCKDB_PATH, SQL_PATH
+from common.constants import DUCKDB_PATH, SQL_PATH
 
 
 class DuckDBOperator(BaseOperator):

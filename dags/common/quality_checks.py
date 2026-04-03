@@ -8,7 +8,7 @@ import os
 
 import duckdb
 
-from dags.common.constants import DUCKDB_PATH
+from common.constants import DUCKDB_PATH
 
 
 class QualityCheckFailed(Exception):

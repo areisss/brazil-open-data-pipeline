@@ -44,4 +44,4 @@ COPY (
     FROM enriched
     ORDER BY year, executed_brl DESC
 )
-TO '{{ params.gold_path }}/spending_by_function/' (FORMAT PARQUET, PARTITION_BY (functional_category), OVERWRITE_OR_CREATE);
+TO '{{ params.gold_path }}/spending_by_function/' (FORMAT PARQUET, PARTITION_BY (functional_category), OVERWRITE);

@@ -42,4 +42,4 @@ COPY (
     FROM with_cumulative
     ORDER BY biome, year
 )
-TO '{{ params.gold_path }}/deforestation_by_biome/' (FORMAT PARQUET, PARTITION_BY (biome), OVERWRITE_OR_CREATE);
+TO '{{ params.gold_path }}/deforestation_by_biome/' (FORMAT PARQUET, PARTITION_BY (biome), OVERWRITE);

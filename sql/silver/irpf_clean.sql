@@ -18,4 +18,4 @@ COPY (
       AND num_declarations >= 0
       AND tax_due_brl >= 0
 )
-TO '{{ params.silver_path }}/irpf/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE_OR_CREATE);
+TO '{{ params.silver_path }}/irpf/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE);

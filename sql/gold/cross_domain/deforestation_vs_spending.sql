@@ -26,4 +26,4 @@ COPY (
     FULL OUTER JOIN env_spending e ON d.year = e.year
     ORDER BY year
 )
-TO '{{ params.gold_path }}/cross_domain/deforestation_vs_spending/' (FORMAT PARQUET, OVERWRITE_OR_CREATE);
+TO '{{ params.gold_path }}/cross_domain/deforestation_vs_spending/data.parquet' (FORMAT PARQUET);

@@ -12,4 +12,4 @@ COPY (
         '{{ params.source_file }}' AS _source_file
     FROM read_csv_auto('{{ params.source_file }}', header=true)
 )
-TO '{{ params.bronze_path }}/prodes/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE_OR_CREATE);
+TO '{{ params.bronze_path }}/prodes/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE);

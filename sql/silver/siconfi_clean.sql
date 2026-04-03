@@ -28,4 +28,4 @@ COPY (
     WHERE year BETWEEN 2000 AND 2025
       AND executed_brl >= 0
 )
-TO '{{ params.silver_path }}/spending/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE_OR_CREATE);
+TO '{{ params.silver_path }}/spending/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE);

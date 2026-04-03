@@ -22,10 +22,10 @@ os.environ.setdefault("WAREHOUSE_PATH", "/tmp/test_warehouse")
 os.environ.setdefault("SQL_PATH", str(PROJECT_ROOT / "sql"))
 
 DAG_FILES = [
-    "dags.deforestation_pipeline",
-    "dags.government_spending_pipeline",
-    "dags.irpf_tax_pipeline",
-    "dags.cross_domain_analytics",
+    "deforestation_pipeline",
+    "government_spending_pipeline",
+    "irpf_tax_pipeline",
+    "cross_domain_analytics",
 ]
 
 

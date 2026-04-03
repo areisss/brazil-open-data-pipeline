@@ -26,4 +26,4 @@ COPY (
     FULL OUTER JOIN spending_annual s ON t.year = s.year
     ORDER BY year
 )
-TO '{{ params.gold_path }}/cross_domain/fiscal_balance/' (FORMAT PARQUET, OVERWRITE_OR_CREATE);
+TO '{{ params.gold_path }}/cross_domain/fiscal_balance/data.parquet' (FORMAT PARQUET);

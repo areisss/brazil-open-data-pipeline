@@ -28,4 +28,4 @@ COPY (
       AND area_km2 > 0
       AND area_km2 < 100000  -- sanity check: no single entry should exceed 100k km²
 )
-TO '{{ params.silver_path }}/prodes/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE_OR_CREATE);
+TO '{{ params.silver_path }}/prodes/' (FORMAT PARQUET, PARTITION_BY (year), OVERWRITE);

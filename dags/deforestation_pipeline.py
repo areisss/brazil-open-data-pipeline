@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from airflow.decorators import dag, task
 from airflow.operators.python import ShortCircuitOperator
 
-from dags.common.constants import (
+from common.constants import (
     BRONZE_PATH,
     DEFAULT_ARGS,
     DS_DEFORESTATION,
@@ -23,8 +23,8 @@ from dags.common.constants import (
     RAW_PATH,
     SILVER_PATH,
 )
-from dags.common.duckdb_operator import DuckDBOperator
-from dags.common.quality_checks import run_quality_checks
+from common.duckdb_operator import DuckDBOperator
+from common.quality_checks import run_quality_checks
 
 
 @dag(
@@ -47,7 +47,7 @@ def deforestation_pipeline():
     @task(task_id="download_prodes", pool=GOV_API_POOL)
     def download_prodes(**context):
         """Download PRODES data from TerraBrasilis or fallback."""
-        from include.extractors.prodes import download_prodes
+        import sys; sys.path.insert(0, "/opt/airflow"); from include.extractors.prodes import download_prodes
 
         output_dir = f"{RAW_PATH}/prodes"
         filepath = download_prodes(output_dir)
@@ -137,7 +137,7 @@ def deforestation_pipeline():
 
 def _check_source_changed(**context):
     """Check if PRODES data has changed since last run."""
-    from dags.common.etag_checker import check_source_changed
+    from common.etag_checker import check_source_changed
 
     return check_source_changed(
         source_key="prodes_deforestation",

@@ -38,4 +38,4 @@ COPY (
     FROM ranked
     ORDER BY year DESC, biome, area_km2 DESC
 )
-TO '{{ params.gold_path }}/deforestation_by_state/' (FORMAT PARQUET, OVERWRITE_OR_CREATE);
+TO '{{ params.gold_path }}/deforestation_by_state/data.parquet' (FORMAT PARQUET);

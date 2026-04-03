@@ -12,14 +12,14 @@ from datetime import datetime
 
 from airflow.decorators import dag, task
 
-from dags.common.constants import (
+from common.constants import (
     DEFAULT_ARGS,
     DS_DEFORESTATION,
     DS_IRPF,
     DS_SPENDING,
     GOLD_PATH,
 )
-from dags.common.duckdb_operator import DuckDBOperator
+from common.duckdb_operator import DuckDBOperator
 
 
 @dag(
@@ -50,7 +50,7 @@ def cross_domain_analytics():
     def log_completion(**context):
         """Log that all cross-domain KPIs have been computed."""
         import duckdb
-        from dags.common.constants import DUCKDB_PATH
+        from common.constants import DUCKDB_PATH
 
         con = duckdb.connect(DUCKDB_PATH)
 

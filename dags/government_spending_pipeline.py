@@ -14,7 +14,7 @@ from datetime import datetime
 from airflow.decorators import dag, task
 from airflow.operators.python import ShortCircuitOperator
 
-from dags.common.constants import (
+from common.constants import (
     BRONZE_PATH,
     DEFAULT_ARGS,
     DS_SPENDING,
@@ -23,8 +23,8 @@ from dags.common.constants import (
     RAW_PATH,
     SILVER_PATH,
 )
-from dags.common.duckdb_operator import DuckDBOperator
-from dags.common.quality_checks import run_quality_checks
+from common.duckdb_operator import DuckDBOperator
+from common.quality_checks import run_quality_checks
 
 
 @dag(
@@ -46,7 +46,7 @@ def government_spending_pipeline():
 
     @task(task_id="fetch_siconfi_data", pool=GOV_API_POOL)
     def fetch_data(**context):
-        from include.extractors.siconfi import fetch_spending_data
+        import sys; sys.path.insert(0, "/opt/airflow"); from include.extractors.siconfi import fetch_spending_data
         return fetch_spending_data(f"{RAW_PATH}/spending", start_year=2000, end_year=2024)
 
     bronze = DuckDBOperator(
@@ -88,7 +88,7 @@ def government_spending_pipeline():
 
 
 def _check_source_changed(**context):
-    from dags.common.etag_checker import check_source_changed
+    from common.etag_checker import check_source_changed
     return check_source_changed(
         source_key="siconfi_spending",
         url="https://apidatalake.tesouro.gov.br/ords/siconfi/tt/rreo",
