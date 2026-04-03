@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Airflow
+logs/
+airflow.cfg
+airflow.db
+webserver_config.py
+
+# Data lake (large files — not committed)
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+
+# DuckDB warehouse
+warehouse/*.duckdb
+warehouse/*.wal
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Docker
+.env.local
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

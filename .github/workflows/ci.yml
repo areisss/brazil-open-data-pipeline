@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check dags/ include/ tests/
+      - run: ruff format --check dags/ include/ tests/
+
+  test:
+    name: DAG Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install apache-airflow==2.9.3 duckdb pyarrow requests pytest
+      - run: pytest tests/ -v --tb=short
+        env:
+          AIRFLOW_HOME: /tmp/airflow
+          DATA_LAKE_PATH: /tmp/test_data
+          WAREHOUSE_PATH: /tmp/test_warehouse
+          SQL_PATH: ${{ github.workspace }}/sql
